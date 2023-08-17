@@ -14,7 +14,8 @@ option(EASTL_STD_ITERATOR_CATEGORY_ENABLED "Enable compatibility with std:: iter
 #-------------------------------------------------------------------------------------------
 # Compiler Flags
 #-------------------------------------------------------------------------------------------
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts/CMake")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts/CMake")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/.bin)
 include(CommonCppFlags)
 
 #-------------------------------------------------------------------------------------------
@@ -22,8 +23,12 @@ include(CommonCppFlags)
 #-------------------------------------------------------------------------------------------
 file(GLOB EASTL_SOURCES "source/*.cpp")
 file(GLOB_RECURSE EASTL_HEADERS "include/EASTL/**.h")
-add_library(EASTL ${EASTL_SOURCES} ${EASTL_HEADERS})
-target_compile_features(EASTL PUBLIC cxx_std_14)
+add_library(EASTL SHARED ${EASTL_SOURCES} ${EASTL_HEADERS})
+target_compile_features(EASTL PUBLIC cxx_std_17)
+target_compile_definitions(EASTL PUBLIC EA_DLL)
+if(MSVC)
+    target_compile_definitions(EASTL PRIVATE EASTL_API=__declspec\(dllexport\))
+endif()
 
 # include both source and headers in the files tab in Visual Studio
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Header Files" FILES ${EASTL_HEADERS})
@@ -69,13 +74,3 @@ if (NOT TARGET EABase)
 endif()
 
 target_link_libraries(EASTL EABase)
-
-#-------------------------------------------------------------------------------------------
-# Installation
-#-------------------------------------------------------------------------------------------
-install(TARGETS EASTL DESTINATION lib)
-install(DIRECTORY include/EASTL DESTINATION include)
-
-if (MSVC)
-    install(FILES ${EASTL_NATVIS_FILE} DESTINATION ${EASTL_NATVIS_DIR})
-endif()
